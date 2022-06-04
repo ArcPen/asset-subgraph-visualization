@@ -105,9 +105,9 @@
 		// 万有引力
 		.force("charge", d3.forceManyBody().strength(-125)) 
 		// 用指定的x坐标和y坐标创建一个新的居中力，如果未指定x和y，则默认为⟨0,0⟩
-		// 
 		// Q1 把力导图的力的中心移到平面中央
-		// 
+		.force("center", d3.forceCenter(width/2, height/2));
+		//
 		console.log(graph.links[0])
 		
 
@@ -180,18 +180,26 @@
 			.join("circle")
 			.attr("r", 5)// 设置节点半径
 			.attr("fill", function(d) { return color(d.group); })// 设置节点的填充色，通过节点的group属性来计算节点的填充颜色
-			// .call(
+			.call(
 
 				// 
 				//  Q2: 增加拖拽事件，调用后面定义的三个阶段的监听函数 //
-				// 
+				d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended)
 
-			// )
+			)
 			.on('mouseover', function (event,d) {
 
 				// 
 				//  Q3: 鼠标hover的时候圆圈放大效果
-				// 
+				//
+                node
+                    .style('opacity', .7)
+                    .filter(n => n.id === d.id)
+                    .style('opacity', 1)
+                    .style('r', 6)
 
 				tooltip.transition()
 					.duration(250) // 设置transition效果的速度，默认为500ms
@@ -209,7 +217,9 @@
 
 				// 
 				//  Q3: 鼠标离开的时候圆圈还原
-				// 
+                node
+                    .style('opacity', 1)
+                    .style('r', 5)
 
 				tooltip.transition()
 					.duration(250)
