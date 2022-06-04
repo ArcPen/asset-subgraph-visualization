@@ -109,6 +109,36 @@ body {
     -webkit-animation-delay:1.04s;
 }
 </style>
+<style>
+/* Tooltip */
+/* 提示框 */
+.tooltip {
+  position: absolute;
+  padding: 7px;
+  font-size: 0.9em;
+  pointer-events: none;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+
+  /* 添加阴影效果 */
+  -moz-box-shadow:    3px 3px 10px 0px rgba(0, 0, 0, 0.25);
+  -webkit-box-shadow: 3px 3px 10px 0px rgba(0, 0, 0, 0.25);
+  box-shadow:         3px 3px 10px 0px rgba(0, 0, 0, 0.25);
+}
+
+.tooltip p {
+  margin: 0;
+  padding: 0;
+}
+.tooltip table {
+  margin: 0;
+  padding: 0;
+  border-collapse: collapse;
+}
+
+</style>
+
 </head>
 
 <body>
@@ -176,7 +206,8 @@ body {
 <script src="https://unpkg.com/d3@7.3.0/dist/d3.min.js"></script>
 <script src="https://unpkg.com/vue@3.2.9/dist/vue.global.js"></script>
 
-<!-- 加载中 -->
+<!-- Maybe later consider a little change, and use the template of vue? -->
+<!-- Loading... -->
 <script>
 const { createApp } = Vue
 
@@ -190,8 +221,11 @@ const loading = createApp({
 }).mount('#loading')
 </script>
 
-
+<!-- Three Main Components -->
 <script>
+//const industries = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']
+const nodeTypes = ['Domain', 'IP', 'Cert', 'Whois_Name', 'Whois_Phone', 'Whois_Email', 'IP_C', 'ASN']
+
 const forceMap = createApp({
     delimiters: ['${', '}'],
     data () {
@@ -203,13 +237,121 @@ const forceMap = createApp({
         }
     },
     methods: {
-        main(){
-            let svg = d3.select("#forceMap").select(svg)
+        mainRender(){
+            const graph = this.graph
+            console.log('mainRender called')
+            const svg = d3.select('#forceMap').select('svg')
             console.log(svg)
+            console.log(svg.node().clientWidth, svg.node().clientHeight)
+            let width = svg.node().clientWidth
+            let height = svg.node().clientHeight
+
+            // color mapping for node types
+            const nodeColorMap = d3.scaleOrdinal()
+                .domain(nodeTypes)
+                .range(d3.schemeCategory10)
+
+            // create a simulator
+            const simulation = d3.forceSimulation(graph.nodes)
+                // Link force
+                .force("link", d3.forceLink(graph.links)
+                    .id(n => n.id)
+                    .strength(l => l.importance / 4) // scale to 0-1
+                )
+                // Attraction force
+                .force("charge", d3.forceManyBody().strength(-125))
+                // Centering force
+                .force("center", d3.forceCenter(width/2, height/2))
+
+            // Link data
+            const link = svg.append("g")
+                .attr("stroke", "#999")
+                .attr("stroke-opacity", 0.6)
+                .selectAll("line")
+                .data(graph.links)
+                .join("line")
+                .attr("stroke-width", l => l.importance / 4)
+
+            const tooltip = d3.select("body").append("div")
+                .attr("class", "tooltip")
+                .style("opacity", 0);
+
+            // Nodes
+            const node = svg.append("g")
+                .attr("stroke", "#fff")
+                .attr("stroke-width", 1.5)
+                .selectAll("circle")
+                .data(graph.nodes)
+                .join("circle")
+                .attr("r", 5)
+                .attr("fill", (n) => nodeColorMap(n.type))
+                .on('mouseover', (event, d) => {
+                    node
+                        .filter(n => n.id === d.id)
+                        .style('r', 6)
+                    tooltip.transition()
+                        .duration(250)
+                        .style('opacity', 1)
+                    tooltip.html(
+                            '<p> Name: ' + d.name + '<br> Type: ' + d.type +
+                            (d.industry.length ? '<br> Industry: ' + d.industry.join('') : '') +
+                            '</p>'
+                        )
+                        .style('left', (event.pageX + 15) + 'px')
+                        .style('top', (event.pageY - 28) + 'px')
+                })
+                .on('mouseout', (event, d) => {
+                    node
+                        .style('r', 5)
+                    tooltip.transition()
+                        .duration(250)
+                        .style("opacity", 0)
+                })
+
+            // each tick time, do animation
+            simulation.on("tick", () => {
+                // the action of link line
+                link
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                // the action of nodes
+                node
+                    .attr("cx", d => d.x)
+                    .attr("cy", d => d.y);
+			});
+
+            // add the legend
+            // TODO: adjust the position to become more responsive
+            const legend = svg.append("g")
+                .attr("id", "legend")
+            legend.selectAll("myDots")
+                .data(d3.range(1, 9)) // node types = 8
+                .enter().append('circle')
+                .attr('cx', '50')
+                .attr('cy', (d, i) => 200 + i*25)
+                .attr('r', 5)
+                .style('fill', d => nodeColorMap(d))
+                .style('opacity', 0.8)
+            legend.selectAll('myLabels')
+                .data(d3.range(1, 9))
+                .enter().append('text')
+                .attr('x', 70)
+                .attr('y', (d, i) => 200 + i*25)
+                .style('fill', d => nodeColorMap(d))
+                .style('opacity', 0.8)
+                .text(d => nodeTypes[d-1])
+                .attr('text-anchor', 'left')
+                .style('alignment-baseline', 'middle')
         }
     },
-    updated(){
-        this.main()
+    watch: {
+        graph() {
+            console.log('graph data changed')
+            this.mainRender()
+        }
     }
 }).mount('#forceMap')
 
@@ -230,21 +372,21 @@ const groupsList = createApp({
         return {
             currGroup: 1,
             totalGroups: 100, // To be requested
-            groupData: null,
+            groupDataStr: 'null',
         }
     },
     methods: {
         onButtonClick(groupNum) {
+            console.log("button clicked " + groupNum)
             this.currGroup = groupNum
             this.requestGroupData(groupNum)
         },
         requestGroupData(groupNum) {
             loading.isLoading = true
-            console.log(groupNum)
+            //console.log(groupNum)
             const aUrl = "/data/sample_result.json"
             const aCallback = (resp) => {
-                this.groupData = JSON.parse(resp)
-                console.log(this.groupData)
+                this.groupDataStr = resp
                 loading.isLoading = false
             }
 
@@ -259,14 +401,16 @@ const groupsList = createApp({
         },
     },
     watch: {
-        groupData(d) {
+        groupDataStr(d) {
+            d = JSON.parse(d)
             groupInfo.info = d.info
             forceMap.graph.nodes = d.nodesCore
             forceMap.graph.links = d.linksImportant
+            forceMap.mainRender() // TODO: remove this after completeing
         }
     },
     mounted(){
-        console.log("groupList Mounted")
+        //console.log("groupList Mounted")
         this.onButtonClick(1)
     }
 }).mount('#groupsList')
