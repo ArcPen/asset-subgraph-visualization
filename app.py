@@ -15,7 +15,7 @@ def force_map():
 @app.route('/data/<filename>', methods=['GET', 'POST'])
 def load_data(filename):
     try:
-        return send_from_directory('data', path=filename, as_attachment=True)
+        return send_from_directory('data', filename, as_attachment=True)
     except Exception as e:
         print(filename)
         print(e)
