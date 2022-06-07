@@ -512,7 +512,7 @@ const groupsList = createApp({
     data () {
         return {
             currGroup: 1,
-            totalGroups: 10, // To be requested
+            totalGroups: 3, // To be requested
             groupDataStr: 'null',
         }
     },
@@ -525,7 +525,7 @@ const groupsList = createApp({
         requestGroupData(groupNum) {
             loading.isLoading = true
             //console.log(groupNum)
-            const aUrl = "/data/sample_result.json"
+            const aUrl = "/data/group_" + this.currGroup + ".json"
             const aCallback = (resp) => {
                 this.groupDataStr = resp
                 loading.isLoading = false
