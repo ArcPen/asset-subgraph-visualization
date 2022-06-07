@@ -142,12 +142,56 @@ def get_core_links(subgraph_ids):
 
 
 #%%
+import json
 ## 根据graph_group_list中存储的信息，整理生成一个info list
 ## 随后转换成json格式并存储
 group_info_list = []
 # 这一部分的代码就交给Kyre写吧
-for group_graph in graph_group_list:
-    group_info = {}
-    graph_group_list.append(group_info)
+groupnum = 3
+group_graph = subgraph_3
 
+group_info = {'group' : groupnum}
+
+nodes_core = []
+industry = dict.fromkeys("ABCDEFGHI", 0)
+
+for node in group_graph:
+    info = graph_all.nodes(data=True)[node]
+    info['id'] = node
+    nodes_core.append(info)
+
+    if eval(info['industry']):
+        for i in eval(info['industry']):
+            industry[i] += 1
+
+
+subg = graph_all.subgraph(group_graph)
+links_list = list(subg.edges(data=True))
+links_important = [
+    dict(
+        source = i[0],
+        target = i[1],
+        distance = 1,
+        importance = i[2]['importance'],
+    )
+    for i in links_list
+]
+
+info = dict(
+    groupSize = 1 if len(group_graph) < 400 else (2 if len(group_graph) < 800 else 3),
+    totalNodes = len(group_graph),
+    totalLinks = len(links_list),
+    industryComponents = industry,
+)
+
+group_info = dict(
+    group = 1,
+    info = info,
+    nodesCore = nodes_core,
+    linksImportant = links_important,
+)
+
+with open(f'data/group_{groupnum}.json', 'w+') as fp:
+    json.dump(group_info, fp)
+    print("Complete!")
 # jsonify group_info_list and store it to `data/final_result.json`
