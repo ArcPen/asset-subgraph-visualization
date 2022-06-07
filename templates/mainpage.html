@@ -203,7 +203,7 @@ body {
     <!-- part 0 groupsList -->
     <div class="card" style="top:0%; bottom:0%; left:00%; right:85%">
         <div id="groupsList">
-            Showing Group ${currGroup}
+            当前： Group ${currGroup}
             <div style="position: absolute; height:90%; overflow:scroll;">
                 <button class="group-button" :class="{disabled: item===currGroup}" v-for="item in totalGroups" style="width:100%"
                     @click="onButtonClick(item)">
@@ -227,9 +227,20 @@ body {
 
     <!-- part 3 groupInfo, and a pie chart-->
     <div class="card" style="top:0%; bottom:0%; left:70%; right:00%">
-        part 3
         <div id="groupInfo">
-            ${info}
+            <p>
+                团伙信息：<br>
+                <template v-if="info">
+                    团伙规模 - ${['小型团伙', '中型团伙', '大型团伙'][info.groupSize-1]} <br>
+                    总节点数 - ${info.totalNodes} <br>
+                    总链路数 - ${info.totalLinks} <br>
+                </template>
+                <template v-else>
+                    暂无信息
+                </template>
+
+            </p>
+
 
         </div>
     </div>
