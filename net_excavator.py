@@ -3,6 +3,7 @@ import networkx as nx
 import csv
 from collections import deque
 
+
 #%%
 ## 一个包含所有Nodes和Links的图
 ## 内存消耗可能比较大，不过貌似不重要
@@ -119,6 +120,26 @@ subgraph_3 = subgraph_mining(init_id_3, 3, 10, 30)
 
 ## 用于存储每个group的graph
 graph_group_list = [subgraph_1, subgraph_2, subgraph_3]
+
+
+#%%
+# 关键链路生成
+def get_core_links(subgraph_ids):
+    core_nodes = []
+    for id in subgraph_ids:
+        if graph_all.nodes[id]['is_core_node']:
+            core_nodes.append(id)
+
+    core_links = []
+    for idx in range(len(core_nodes) - 1):
+        core_link = nx.shortest_path(
+            graph_all, source=core_nodes[idx], target=core_nodes[idx + 1]
+        )
+        core_links.extend(core_link[:-1])
+    core_links.append(core_nodes[-1])
+
+    return core_links
+
 
 #%%
 ## 根据graph_group_list中存储的信息，整理生成一个info list
