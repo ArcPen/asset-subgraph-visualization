@@ -214,19 +214,20 @@ body {
     </div>
 
     <!-- part 1 forceMap -->
-    <div class="card" style="top:0%; bottom:30%; left:15%; right:30%">
+    <div class="card" style="top:0%; bottom:00%; left:15%; right:20%">
         <div id="forceMap">
             <svg style="position: absolute; width: 100%; height: 100%"></svg>
         </div>
     </div>
 
-    <!-- part 2 -->
+    <!-- part 2
     <div class="card" style="top:70%; bottom:0%; left:15%; right:30%">
         part 2
     </div>
+    -->
 
     <!-- part 3 groupInfo, and a pie chart-->
-    <div class="card" style="top:0%; bottom:0%; left:70%; right:00%">
+    <div class="card" style="top:0%; bottom:0%; left:80%; right:00%">
         <div id="groupInfo">
             <p>
                 团伙信息：<br>
@@ -234,13 +235,24 @@ body {
                     团伙规模 - ${['小型团伙', '中型团伙', '大型团伙'][info.groupSize-1]} <br>
                     总节点数 - ${info.totalNodes} <br>
                     总链路数 - ${info.totalLinks} <br>
+                    产业统计 -
                 </template>
                 <template v-else>
                     暂无信息
                 </template>
-
             </p>
-
+            <table v-if="info">
+                <tr v-for="(k, i) in keys">
+                    <td>${k}</td>
+                    <td>${labels[i]}</td>
+                    <td>${portion[i]}</td>
+                </tr>
+            </table>
+            <!--
+            <div v-show="info" id="barChart">
+                <svg style="position: absolute; width: 100%; height:100%"></svg>
+            </div>
+             -->
 
         </div>
     </div>
@@ -286,8 +298,8 @@ const forceMap = createApp({
             const graph = this.graph
             console.log('mainRender called')
             const svg = d3.select('#forceMap').select('svg')
-            console.log(svg)
-            console.log(svg.node().clientWidth, svg.node().clientHeight)
+            //console.log(svg)
+            //console.log(svg.node().clientWidth, svg.node().clientHeight)
             let width = svg.node().clientWidth
             let height = svg.node().clientHeight
 
@@ -430,9 +442,72 @@ const groupInfo = createApp({
     delimiters: ['${', '}'],
     data () {
         return {
-            info: null
+            info: null,
+            labels: [
+                '涉黄',
+                '涉赌',
+                '诈骗',
+                '涉毒',
+                '涉枪',
+                '黑客',
+                '非法交易平台',
+                '非法支付平台',
+                '其他',
+            ]
         }
-    }
+    },
+    computed: {
+        keys: function () {return Object.keys(this.info.industryComponents)},
+        portion: function () {
+            const count = Object.values(this.info.industryComponents)
+            const total = eval(count.join('+'))
+            const portion = count.map(d => d / total)
+            return portion.map(d => parseInt(d*100) / 100)
+        }
+    },
+    methods: {
+        renderBarchart() { // Failed attempt
+            console.log("Rendering Barchart")
+            if (!this.info) {
+                return
+            }
+            const svg = d3.select('#barChart').select('svg')
+            console.log(svg.clientWidth)
+            const width = svg.node().clientWidth
+            const height = svg.node().clientHeight
+            const barPadding = 0.1
+            console.log(width, height)
+
+            const keys = Object.keys(this.info.industryComponents)
+            const count = Object.values(this.info.industryComponents)
+            const total = eval(count.join('+'))
+            const portion = count.map(d => d / total)
+
+            //console.log(keys, count, portion)
+            svg.append("g")
+                .selectAll("rect")
+                .data(portion)
+                .enter()
+                .append("rect")
+                .attr("x", function(d, i) {
+                    return i * (width/portion.length);
+                    })
+                .attr("y", function(d) {
+                    return height * 0.8;
+                    })
+                .attr("width", width/portion.length * (1-barPadding))
+                .attr("height", function(d) {
+                    return (height * 0.8) * d;
+                    })
+                .attr("fill", "black");
+
+        }
+    },
+    //watch: {
+    //    info(){
+    //        this.renderBarchart()
+    //    }
+    //}
 }).mount('#groupInfo')
 
 
@@ -441,7 +516,7 @@ const groupsList = createApp({
     data () {
         return {
             currGroup: 1,
-            totalGroups: 100, // To be requested
+            totalGroups: 10, // To be requested
             groupDataStr: 'null',
         }
     },
