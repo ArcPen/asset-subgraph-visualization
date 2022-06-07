@@ -24,8 +24,9 @@ body {
     position:fixed; top:7%; bottom:2%; left:2%; right:2%;
 }
 </style>
+
+<!-- Loading Effects -->
 <style>
-/* loading part */
 #loadContainer {
     position: absolute;
     top: 0;
@@ -109,6 +110,37 @@ body {
     -webkit-animation-delay:1.04s;
 }
 </style>
+<!-- Group Buttons -->
+<style>
+.group-button {
+    background-color: rgb(130, 140, 140);
+    border: none;
+    color: white;
+    padding: 13px 16px;
+    margin: 2px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 1em;
+}
+.group-button {
+    -webkit-transition-duration: 0.4s; /* Safari */
+    transition-duration: 0.4s;
+}
+
+.group-button:hover {
+    background-color: #4CAF50; /* Green */
+    color: white;
+}
+.disabled {
+    opacity: 0.6;
+    /*cursor: not-allowed;*/
+    background-color: #4CAF50; /* Green */
+}
+
+
+</style>
+<!-- Tooltip -->
 <style>
 /* Tooltip */
 /* 提示框 */
@@ -167,30 +199,32 @@ body {
             <div style="margin-top: 10px"> Loading... </div>
         </div>
     </div>
+
     <!-- part 0 groupsList -->
     <div class="card" style="top:0%; bottom:0%; left:00%; right:85%">
-        part 0
         <div id="groupsList">
-            Group ${currGroup}
+            Showing Group ${currGroup}
             <div style="position: absolute; height:90%; overflow:scroll;">
-                <button v-for="item in totalGroups" style="width:100%"
+                <button class="group-button" :class="{disabled: item===currGroup}" v-for="item in totalGroups" style="width:100%"
                     @click="onButtonClick(item)">
                     Group ${item}
                 </button>
             </div>
         </div>
     </div>
+
     <!-- part 1 forceMap -->
     <div class="card" style="top:0%; bottom:30%; left:15%; right:30%">
-{#        <iframe src="/force_map" frameborder="0" style="width: 100%; height: 100%"></iframe>#}
         <div id="forceMap">
             <svg style="position: absolute; width: 100%; height: 100%"></svg>
         </div>
     </div>
+
     <!-- part 2 -->
     <div class="card" style="top:70%; bottom:0%; left:15%; right:30%">
         part 2
     </div>
+
     <!-- part 3 groupInfo, and a pie chart-->
     <div class="card" style="top:0%; bottom:0%; left:70%; right:00%">
         part 3
@@ -324,22 +358,22 @@ const forceMap = createApp({
 			});
 
             // add the legend
-            // TODO: adjust the position to become more responsive
+            const numOfLabels = 9; // To control how many labels to display, max 9
             const legend = svg.append("g")
                 .attr("id", "legend")
             legend.selectAll("myDots")
-                .data(d3.range(1, 9)) // node types = 8
+                .data(d3.range(1, numOfLabels)) // node types = 8
                 .enter().append('circle')
-                .attr('cx', '50')
-                .attr('cy', (d, i) => 200 + i*25)
+                .attr('cx', 30)
+                .attr('cy', (d, i) => height + ((i+1-numOfLabels)*25))
                 .attr('r', 5)
                 .style('fill', d => nodeColorMap(d))
                 .style('opacity', 0.8)
             legend.selectAll('myLabels')
-                .data(d3.range(1, 9))
+                .data(d3.range(1, numOfLabels))
                 .enter().append('text')
-                .attr('x', 70)
-                .attr('y', (d, i) => 200 + i*25)
+                .attr('x', 50)
+                .attr('y', (d, i) => height + ((i+1-numOfLabels)*25))
                 .style('fill', d => nodeColorMap(d))
                 .style('opacity', 0.8)
                 .text(d => nodeTypes[d-1])
