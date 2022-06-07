@@ -319,6 +319,13 @@ const forceMap = createApp({
                 .join("circle")
                 .attr("r", 5)
                 .attr("fill", (n) => nodeColorMap(n.type))
+                .call(
+                    // Add drag event
+                    d3.drag()
+                        .on("start", dragStart)
+                        .on("drag", dragging)
+                        .on("end", dragEnd)
+                )
                 .on('mouseover', (event, d) => {
                     node
                         .filter(n => n.id === d.id)
@@ -379,6 +386,24 @@ const forceMap = createApp({
                 .text(d => nodeTypes[d-1])
                 .attr('text-anchor', 'left')
                 .style('alignment-baseline', 'middle')
+
+            // Functions used in dragging.
+            function dragStart(event) {
+                // set alpha to 0.3 so as to keep simulation moving
+                if (!event.active) {simulation.alphaTarget(0.5).restart()}
+                event.subject.fx = event.subject.x
+                event.subject.fy = event.subject.y
+            }
+            function dragging(event) {
+                event.subject.fx = event.x
+                event.subject.fy = event.y
+            }
+            function dragEnd(event) {
+                // set alpha to 0 to make the simulation stable
+                if (!event.active) {simulation.alphaTarget(0)}
+                event.subject.fx = null
+                event.subject.fy = null
+            }
         }
     },
     watch: {
