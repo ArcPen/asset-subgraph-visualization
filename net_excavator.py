@@ -37,6 +37,8 @@ def read_in_all_graph(): # 用函数包裹一下，避免可能的变量污染
                 importance = ImportanceLinks[data[0]]
             )
 
+    return graph_all
+
 graph_all = read_in_all_graph()
 print("graph_all loading complete!")
 
