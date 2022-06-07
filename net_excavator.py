@@ -43,12 +43,6 @@ print("graph_all loading complete!")
 # It seems that nx use a hashable object to represent the node
 # And a subgraph is easily created through g.subgraph(('n1', 'n2',...))
 
-#%%
-g = nx.Graph()
-g.add_node('123', name='hello', asd = 123)
-
-
-
 
 #%%
 ## 用于存储每个group的graph
