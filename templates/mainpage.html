@@ -206,6 +206,9 @@ body {
                     Group ${item}
                 </button>
             </div>
+            <div style="position: absolute; top: 93%; width: 100%;">
+                <button class="group-button" @click="excavateRandomly">随机挖掘</button>
+            </div>
         </div>
     </div>
 
@@ -313,9 +316,9 @@ const forceMap = createApp({
                     .strength(l => l.importance / 4) // scale to 0-1
                 )
                 // Avoid collision
-                .force('collision', d3.forceCollide(4))
+                .force('collision', d3.forceCollide(5))
                 // repulsive force
-                .force("charge", d3.forceManyBody().strength(-20))
+                .force("charge", d3.forceManyBody().strength(-30))
                 // Centering force
                 .force("center", d3.forceCenter(width/2, height/2))
                 // Radial force, to make it more beautiful
@@ -519,6 +522,7 @@ const groupsList = createApp({
             currGroup: 1,
             totalGroups: 3, // To be requested
             groupDataStr: 'null',
+            groupDataTemp: [],
         }
     },
     methods: {
@@ -528,6 +532,12 @@ const groupsList = createApp({
             this.requestGroupData(groupNum)
         },
         requestGroupData(groupNum) {
+            if (this.groupDataTemp[groupNum]){
+                this.groupDataStr = this.groupDataTemp[groupNum]
+                return
+            }
+
+
             loading.isLoading = true
             //console.log(groupNum)
             const aUrl = "/data/group_" + this.currGroup + ".json"
@@ -545,6 +555,28 @@ const groupsList = createApp({
             anHttpRequest.open( "GET", aUrl, true );
             anHttpRequest.send( null );
         },
+        excavateRandomly(){
+            console.log("excavating")
+            loading.isLoading = true
+            const aUrl = "/excavate"
+            const aCallback = (resp) => {
+                this.totalGroups += 1
+                const groupNum = this.totalGroups
+                this.currGroup = groupNum
+                this.groupDataTemp[groupNum] = resp
+                this.groupDataStr = resp
+                loading.isLoading = false
+            }
+
+            const anHttpRequest = new XMLHttpRequest();
+            anHttpRequest.onreadystatechange = function() {
+                if (anHttpRequest.readyState === 4 && anHttpRequest.status === 200)
+                    aCallback(anHttpRequest.responseText);
+            }
+
+            anHttpRequest.open( "GET", aUrl, true );
+            anHttpRequest.send( null );
+        }
     },
     watch: {
         groupDataStr(d) {

@@ -1,4 +1,5 @@
-from flask import Flask, render_template, send_from_directory, abort
+from flask import Flask, render_template, send_from_directory, abort, jsonify
+from net_excavator import excavate_randomly
 
 app = Flask(__name__)
 
@@ -21,6 +22,11 @@ def load_data(filename):
         print(e)
         abort(404)
 
+@app.route('/excavate')
+def excavate_group():
+    group_info = excavate_randomly()
+    print("excavate successfully")
+    return jsonify(group_info)
 
 if __name__ == '__main__':
     app.run(debug=True)
