@@ -7,10 +7,6 @@ app = Flask(__name__)
 def main():  # application's code here
     return render_template('mainpage.html')
 
-@app.route('/force_map')
-def force_map():
-    return render_template('force_map.html')
-
 # To download files in `data` folder.
 # May have security problems... but that doesn't matter.
 @app.route('/data/<filename>', methods=['GET', 'POST'])
