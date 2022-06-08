@@ -294,6 +294,7 @@ const forceMap = createApp({
             const graph = this.graph
             console.log('mainRender called')
             const svg = d3.select('#forceMap').select('svg')
+            svg.selectAll('*').remove()
             //console.log(svg)
             //console.log(svg.node().clientWidth, svg.node().clientHeight)
             let width = svg.node().clientWidth
@@ -311,10 +312,14 @@ const forceMap = createApp({
                     .id(n => n.id)
                     .strength(l => l.importance / 4) // scale to 0-1
                 )
-                // Attraction force
-                .force("charge", d3.forceManyBody().strength(-125))
+                // Avoid collision
+                .force('collision', d3.forceCollide(4))
+                // repulsive force
+                .force("charge", d3.forceManyBody().strength(-20))
                 // Centering force
                 .force("center", d3.forceCenter(width/2, height/2))
+                // Radial force, to make it more beautiful
+                .force("radial", d3.forceRadial(5, width/2, height/2))
 
             // Link data
             const link = svg.append("g")
@@ -423,7 +428,7 @@ const forceMap = createApp({
                 event.subject.fx = null
                 event.subject.fy = null
             }
-        }
+        },
     },
     watch: {
         graph() {
