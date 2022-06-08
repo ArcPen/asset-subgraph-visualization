@@ -354,7 +354,7 @@ const forceMap = createApp({
                         .style('opacity', 1)
                     tooltip.html(
                             '<p> Name: ' + d.name + '<br> Type: ' + d.type +
-                            (d.industry.length ? '<br> Industry: ' + d.industry.join('') : '') +
+                            (d.industry.length>2 ? '<br> Industry: ' + eval(d.industry).join('') : '') +
                             '</p>'
                         )
                         .style('left', (event.pageX + 15) + 'px')
