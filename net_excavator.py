@@ -191,10 +191,10 @@ def excavate_randomly():
     while True:
         node = choice(list(graph_all.nodes()))
         node_info =  graph_all.nodes()[node]
-        if not node_info['classified'] and node_info['type'] == 'Domain':
+        if not node_info['classified']:
             break
     # print(node)
-    subgraph = subgraph_mining([node], 4, 10, 40)
+    subgraph = subgraph_mining([node], 3, 10, 40)
     group_info = extract_group_info(subgraph)
     return group_info
 
