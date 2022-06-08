@@ -30,6 +30,50 @@
 
 ## 前端可视化部分
 
+
+## 子图挖掘算法部分
+
+子图挖掘后端部分我们基于深度优先实现层级搜索，用于模拟在节点之间根据边的重要程度进行不同深度的跳转。同时每进入一个新节点时，我们都会依据节点连接特性，根据业务规则来判断该节点是否属于核心资产，并进行标记。最后，可视化的节点筛选功能也是在这里实施的，为减前端渲染压力，我们在此对具有重复邻居的超级节点进行精简，以减少其可视化展示的邻居节点数量，从而提高展示性能。但这个处理过程也带来了一些坏处，例如我们前端展示的团伙统计信息是基于接收到的节点进行的，因而筛选会导致统计信息不完全，这点我们将在之后进行改进。
+
+下面是核心算法部分。
+
+```python
+# BFS search
+stack = deque([id])
+level = 0  # level < mining_depth
+while stack:
+    for _ in range(len(stack)):
+        node_id = stack.popleft()
+
+        # get all neighbors
+        neighbors = list(graph_all.neighbors(node_id))  # 迭代器转为list，重复遍历
+        # judge if is core node
+        if graph_all.nodes[node_id]['importance'] == 3:
+            if len(neighbors) >= min_num_edges:
+                weak_edges = 0  # 50%以上的邻边关联强度较弱的网络资产不被认为是核心网络资产
+                num_ip = 0  # 同时关联2个以上IP地址的Domain网络资产不被认为是核心网络资产
+                for neighbor in neighbors:
+                    if graph_all.nodes[neighbor]['type'] == 'IP':
+                        num_ip += 1
+                    if graph_all.edges[node_id, neighbor]['importance'] == 1:
+                        weak_edges += 1
+
+                if num_ip < 2 and weak_edges / len(neighbors) < 0.5:  # 核心资产
+                    graph_all.nodes[node_id]['is_core_node'] = True
+
+        # visualize the subgraph
+        num_neighbors = 0  # if num > max_num_neighbors, stop
+        for neighbor in neighbors:
+            if neighbor not in subgraph_id:
+                subgraph_id.add(neighbor)
+                graph_all.nodes[neighbor]['classified'] = True  # 分到一个group里
+                stack.append(neighbor)
+                num_neighbors += 1
+
+            if num_neighbors > max_num_neighbors:
+                break
+```
+
 ### 系统介绍
 
 如图，为我们的可视化界面
@@ -73,9 +117,6 @@
 此外，我们还发现，一些团伙主要涉及一个或两个产业，比如团伙1以涉枪为主，
 
 
-
-
-## 子图挖掘算法部分
 
 
 
